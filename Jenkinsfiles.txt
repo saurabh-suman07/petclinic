@@ -4,57 +4,30 @@
     stage('App_Build_ST') {
         steps {
 			echo 'Build Number: ' + env.BUILD_NUMBER
-			node(label: 'java8') {
-				deleteDir()
-				git(url: 'https://github.com/saurabh-suman07/petclinic.git', branch: 'master', credentialsId: 'GIT-HUB')
-            	sh([script:"${tool 'MY Maven'}/bin/mvn clean install -DskipTests"])
+			
 			}
       	}
     }
     stage('Unit_Tests_ST') {
       steps {
-		node(label: 'java8') {
-        	echo 'Build Number: ' + env.BUILD_NUMBER
-			sh([script:"${tool 'MY Maven'}/bin/mvn test"])
-			archiveArtifacts artifacts: '**/*' 
-		}
+		echo 'Build Number: ' + env.BUILD_NUMBER
+			
       }
     }
     stage('Code_Analysis_ST') {
       steps {
 			echo 'Build Number: ' + env.BUILD_NUMBER
-			#build job: 'Extra_Jobs/Sonar_Code_Analysis', parameters: [string(name: 'B', value: BUILD_NUMBER)]
 			echo "Sonar Job"
 		}
     }
     stage('Deploy_Environment_ST') {
       steps {
-		#node(label:'docker'){
-			echo 'Build Number: ' + env.BUILD_NUMBER
-						
-			sh '''echo "
-			FROM tomcat:8.0 
-			ADD target/petclinic.war /usr/local/tomcat/webapps/
-			" > ${WORKSPACE}/Dockerfile
-			export REPO_NAME="$(echo ${JOB_NAME} | tr '/' '_' | tr '[:upper:]' '[:lower:]')"
-			docker build -t ${REPO_NAME}/java:0.0.${BUILD_NUMBER} .
-			echo "New image has been build - ${REPO_NAME}/java:0.0.${BUILD_NUMBER}"'''
-
+		echo 'Build Number: ' + env.BUILD_NUMBER
+		
 		}
       }
     }
-    stage('Test_Build_ST') {
-      steps {
-		#node(label: 'All_NT') {
-			git(url: 'https://github.com/saurabh-suman07/petclinic.git', branch: 'master', credentialsId: 'GIT-HUB')
-			bat([script:"${tool 'MY Maven'}/bin/mvn clean compile install -DskipTests"])
-		}
-      }
-    }
-	stage('Continuous_Testing_ST') {
-	agent {
-		#node { label 'All_NT' }
-		}
+    stage('Continuous_Testing_ST') {
 	steps {
 	  parallel(
 		"01-Functional": {
